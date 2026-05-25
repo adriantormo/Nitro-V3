@@ -14,8 +14,13 @@ const rendererRoot = existsSync(currentRendererRoot) ? currentRendererRoot : leg
 // dev server takes minutes to start on Windows. Serving them with a
 // dedicated sirv middleware (below) bypasses chokidar entirely.
 const nitroFilesRoot = resolve(__dirname, '..', 'Nitro-Files');
-const nitroAssetsRoot = resolve(nitroFilesRoot, 'nitro-assets');
-const swfRoot = resolve(nitroFilesRoot, 'swf');
+const localAssetsRoot = resolve(__dirname, '..', 'assets');
+const nitroAssetsRoot = existsSync(resolve(nitroFilesRoot, 'nitro-assets'))
+    ? resolve(nitroFilesRoot, 'nitro-assets')
+    : resolve(localAssetsRoot, 'nitro-assets');
+const swfRoot = existsSync(resolve(nitroFilesRoot, 'swf'))
+    ? resolve(nitroFilesRoot, 'swf')
+    : resolve(localAssetsRoot, 'flash');
 
 const nitroAssetsServer = () => ({
     name: 'nitro-assets-serve',
