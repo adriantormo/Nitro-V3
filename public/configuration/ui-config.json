@@ -1,8 +1,8 @@
 ﻿{
     "image.library.notifications.url":  "${image.library.url}notifications/%image%.png",
     "achievements.images.url":  "${image.library.url}Quests/%image%.png",
-    "camera.url":  "http://localhost/camera/",
-    "thumbnails.url":  "http://localhost/camera/thumbnail/%thumbnail%.png",
+    "camera.url":  "http://localhost/habborp/camera/",
+    "thumbnails.url":  "http://localhost/habborp/camera/thumbnail/%thumbnail%.png",
     "url.prefix":  "",
     "habbopages.url":  "${image.library.url}habbopages/",
     "group.homepage.url":  "${url.prefix}/groups/%groupid%/id",
