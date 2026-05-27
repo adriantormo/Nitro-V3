@@ -1,6 +1,7 @@
 import { CreateLinkEvent, Dispose, DropBounce, EaseOut, JumpBy, Motions, NitroToolbarAnimateIconEvent, PerkAllowancesMessageEvent, PerkEnum, Queue, Wait, YouTubeRoomSettingsEvent } from '@nitrots/nitro-renderer';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { GetConfigurationValue, isHousekeepingEnabled, MessengerIconState, OpenMessengerChat, setYoutubeRoomEnabled, VisitDesktop } from '../../api';
 import { Flex, LayoutAvatarImageView, LayoutItemCountView } from '../../common';
 import { useAchievements, useFriends, useHasPermission, useInventoryUnseenTracker, useMessageEvent, useMessenger, useModTools, useNitroEvent, useSessionInfo, useWiredTools } from '../../hooks';
@@ -27,6 +28,17 @@ const SHELL_TRANSITION = { type: 'spring' as const, stiffness: 260, damping: 26 
 const NAV_TRANSITION = { type: 'spring' as const, stiffness: 300, damping: 28 };
 const ME_POPOVER_TRANSITION = { type: 'spring' as const, stiffness: 420, damping: 28 };
 const TOGGLE_LOCK_MS = 220;
+const ME_POPOVER_OFFSET = 8;
+
+const getMePopoverPosition = (element: HTMLElement, offset: number) =>
+{
+    const bounds = element.getBoundingClientRect();
+
+    return {
+        left: (bounds.left + (bounds.width / 2)),
+        bottom: (window.innerHeight - bounds.top + offset)
+    };
+};
 
 export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
 {
@@ -52,6 +64,9 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
     );
     const isVisible = (isToolbarOpen || !isInRoom);
     const visibilityVariant = isVisible ? 'visible' : 'hidden';
+    const [ activeMeAnchor, setActiveMeAnchor ] = useState<HTMLElement | null>(null);
+    const [ mePopoverOffset, setMePopoverOffset ] = useState(ME_POPOVER_OFFSET);
+    const [ mePopoverPosition, setMePopoverPosition ] = useState<{ left: number; bottom: number } | null>(null);
     const toggleLockRef = useRef(false);
     const toggleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -67,6 +82,25 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
         setIsToolbarOpen(value => !value);
         if(toggleTimeoutRef.current) clearTimeout(toggleTimeoutRef.current);
         toggleTimeoutRef.current = setTimeout(() => { toggleLockRef.current = false; }, TOGGLE_LOCK_MS);
+    }, []);
+
+    const updateMePopoverPosition = useCallback(() =>
+    {
+        if(!activeMeAnchor) return;
+
+        setMePopoverPosition(getMePopoverPosition(activeMeAnchor, mePopoverOffset));
+    }, [ activeMeAnchor, mePopoverOffset ]);
+
+    const handleMeToggleClick = useCallback((event: ReactMouseEvent<HTMLElement>, offset = ME_POPOVER_OFFSET) =>
+    {
+        event.stopPropagation();
+
+        const anchor = event.currentTarget;
+
+        setActiveMeAnchor(anchor);
+        setMePopoverOffset(offset);
+        setMePopoverPosition(getMePopoverPosition(anchor, offset));
+        setMeExpanded(value => !value);
     }, []);
 
     const compactFramePosition = (isToolbarOpen && isInRoom) ? 'bottom-[90px] min-[1540px]:bottom-0' : 'bottom-0';
@@ -101,6 +135,26 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
             setYoutubeRoomEnabled(false);
         }
     }, [ isInRoom ]);
+
+    useEffect(() =>
+    {
+        if(!isMeExpanded)
+        {
+            setMePopoverPosition(null);
+            return;
+        }
+
+        updateMePopoverPosition();
+
+        window.addEventListener('resize', updateMePopoverPosition);
+        window.addEventListener('scroll', updateMePopoverPosition, true);
+
+        return () =>
+        {
+            window.removeEventListener('resize', updateMePopoverPosition);
+            window.removeEventListener('scroll', updateMePopoverPosition, true);
+        };
+    }, [ isMeExpanded, updateMePopoverPosition ]);
 
     useEffect(() =>
     {
@@ -157,10 +211,29 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
         animationIconToToolbar('icon-inventory', event.image, event.x, event.y);
     });
 
+    const mePopover = (typeof document !== 'undefined')
+        ? createPortal(
+            <AnimatePresence>
+                { (isMeExpanded && mePopoverPosition) &&
+                    <motion.div
+                        initial={ { opacity: 0, y: 6, scale: 0.97 } }
+                        animate={ { opacity: 1, y: 0, scale: 1 } }
+                        exit={ { opacity: 0, y: 6, scale: 0.97 } }
+                        transition={ ME_POPOVER_TRANSITION }
+                        className="pointer-events-auto fixed z-[90] -translate-x-1/2"
+                        style={ { left: mePopoverPosition.left, bottom: mePopoverPosition.bottom } }>
+                        <ToolbarMeView setMeExpanded={ setMeExpanded } unseenAchievementCount={ getTotalUnseen } useGuideTool={ useGuideTool } />
+                    </motion.div> }
+            </AnimatePresence>,
+            document.body
+        )
+        : null;
+
     return (
         <>
             <style>{ TOOLBAR_STYLES }</style>
             { youtubeEnabled && <YouTubePlayerView /> }
+            { mePopover }
 
             { isInRoom &&
                 <div className={ `tb-frame fixed ${ compactFramePosition } left-1/2 -translate-x-1/2 z-40 flex h-[38px] w-[420px] max-w-[95vw] items-center px-[6px] py-[4px] pointer-events-none` }>
@@ -225,26 +298,11 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
                             <LayoutItemCountView count={ getFullCount } className="absolute -right-1 top-0" /> }
                     </motion.div>
                     <motion.div variants={ itemVariants } className="relative">
-                        <AnimatePresence>
-                            { isMeExpanded &&
-                                <motion.div
-                                    initial={ { opacity: 0, y: 6, scale: 0.97 } }
-                                    animate={ { opacity: 1, y: 0, scale: 1 } }
-                                    exit={ { opacity: 0, y: 6, scale: 0.97 } }
-                                    transition={ ME_POPOVER_TRANSITION }
-                                    className="pointer-events-auto absolute bottom-[calc(100%+8px)] left-1/2 z-50 -translate-x-1/2">
-                                    <ToolbarMeView setMeExpanded={ setMeExpanded } unseenAchievementCount={ getTotalUnseen } useGuideTool={ useGuideTool } />
-                                </motion.div> }
-                        </AnimatePresence>
                         <motion.div
                             className="cursor-pointer"
                             whileHover={ { scale: 1.08 } }
                             whileTap={ { scale: 0.95 } }
-                            onClick={ event =>
-                            {
-                                setMeExpanded(value => !value);
-                                event.stopPropagation();
-                            } }>
+                            onClick={ event => handleMeToggleClick(event) }>
                             <LayoutAvatarImageView headOnly={ true } direction={ 2 } figure={ userFigure } className="tb-icon !h-[64px] !w-[32px] !bg-center !bg-no-repeat" style={ { marginTop: "8px" } } />
                         </motion.div>
                         { (getTotalUnseen > 0) &&
@@ -334,26 +392,11 @@ export const ToolbarView: FC<{ isInRoom: boolean }> = props =>
                     </motion.div>
                 </motion.div>
                 <motion.div variants={ itemVariants } className="relative mx-[2px] shrink-0">
-                    <AnimatePresence>
-                        { isMeExpanded &&
-                            <motion.div
-                                initial={ { opacity: 0, y: 6, scale: 0.97 } }
-                                animate={ { opacity: 1, y: 0, scale: 1 } }
-                                exit={ { opacity: 0, y: 6, scale: 0.97 } }
-                                transition={ ME_POPOVER_TRANSITION }
-                                className="pointer-events-auto absolute bottom-[calc(100%+10px)] left-1/2 z-[70] -translate-x-1/2">
-                                <ToolbarMeView setMeExpanded={ setMeExpanded } unseenAchievementCount={ getTotalUnseen } useGuideTool={ useGuideTool } />
-                            </motion.div> }
-                    </AnimatePresence>
                     <motion.div
                         className="cursor-pointer"
                         whileHover={ { scale: 1.08 } }
                         whileTap={ { scale: 0.95 } }
-                        onClick={ event =>
-                        {
-                            setMeExpanded(value => !value);
-                            event.stopPropagation();
-                        } }>
+                        onClick={ event => handleMeToggleClick(event, 10) }>
                         <LayoutAvatarImageView headOnly={ true } direction={ 2 } figure={ userFigure } className="tb-icon !h-[64px] !w-[32px] !bg-center !bg-no-repeat" style={ { marginTop: "8px" } } />
                     </motion.div>
                     { (getTotalUnseen > 0) &&

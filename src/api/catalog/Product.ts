@@ -39,6 +39,16 @@ export class Product implements IProduct
         return products.filter(product => ((product.productType !== ProductTypeEnum.BADGE) && (product.productType !== ProductTypeEnum.EFFECT) && (product.productClassId !== Product.EFFECT_CLASSID_NINJA_DISAPPEAR)));
     }
 
+    private static getSpacesData(offer: IPurchasableOffer, className: string, extraParam: string): { className: string; extraParam: string }
+    {
+        const match = offer?.localizationId?.match(/^(floor|wallpaper|landscape)_single_(.+)$/);
+
+        return {
+            className: className || match?.[1] || '',
+            extraParam: extraParam || match?.[2] || ''
+        };
+    }
+
     public getIconUrl(offer: IPurchasableOffer = null, stuffData: IObjectData = null): string
     {
         switch(this._productType)
@@ -46,24 +56,25 @@ export class Product implements IProduct
             case ProductTypeEnum.FLOOR:
                 return GetRoomEngine().getFurnitureFloorIconUrl(this.productClassId);
             case ProductTypeEnum.WALL: {
-                if(offer && this._furnitureData)
+                if(offer)
                 {
+                    const spacesData = Product.getSpacesData(offer, this._furnitureData?.className || '', this._extraParam || offer.product?.extraParam || '');
                     let iconName = '';
 
-                    switch(this._furnitureData.className)
+                    switch(spacesData.className)
                     {
                         case 'floor':
-                            iconName = [ 'th', this._furnitureData.className, offer.product.extraParam ].join('_');
+                            iconName = [ 'th', 'floor', spacesData.extraParam ].join('_');
                             break;
                         case 'wallpaper':
-                            iconName = [ 'th', 'wall', offer.product.extraParam ].join('_');
+                            iconName = [ 'th', 'wall', spacesData.extraParam ].join('_');
                             break;
                         case 'landscape':
-                            iconName = [ 'th', this._furnitureData.className, (offer.product.extraParam || '').replace('.', '_'), '001' ].join('_');
+                            iconName = [ 'th', 'landscape', (spacesData.extraParam || '').replace('.', '_'), '001' ].join('_');
                             break;
                     }
 
-                    if(iconName !== '')
+                    if((iconName !== '') && spacesData.extraParam)
                     {
                         const assetUrl = GetConfigurationValue<string>('catalog.asset.url');
 

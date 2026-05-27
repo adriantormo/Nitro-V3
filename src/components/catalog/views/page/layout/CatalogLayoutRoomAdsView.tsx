@@ -31,17 +31,19 @@ export const CatalogLayoutRoomAdsView: FC<CatalogLayoutProps> = props =>
 
     useEffect(() =>
     {
-        if(isExtended)
+        const promotionData = promoteInformation?.data;
+
+        if(isExtended && promotionData)
         {
-            setRoomId(promoteInformation.data.flatId);
-            setEventName(promoteInformation.data.eventName);
-            setEventDesc(promoteInformation.data.eventDescription);
-            setCategoryId(promoteInformation.data.categoryId);
+            setRoomId(promotionData.flatId);
+            setEventName(promotionData.eventName);
+            setEventDesc(promotionData.eventDescription);
+            setCategoryId(promotionData.categoryId);
             setExtended(isExtended); // This is for sending to packet
             setIsExtended(false); // This is from hook useRoomPromotte
         }
 
-    }, [ isExtended, eventName, eventDesc, categoryId, promoteInformation.data, setIsExtended ]);
+    }, [ isExtended, promoteInformation, setIsExtended ]);
 
     const resetData = () =>
     {

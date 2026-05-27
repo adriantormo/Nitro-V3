@@ -16,7 +16,12 @@ export const GetRememberLogin = (): RememberLoginData | null =>
     {
         const data = JSON.parse(window.localStorage.getItem(REMEMBER_LOGIN_KEY) || 'null') as RememberLoginData | null;
 
-        if(!data?.token?.length && !data?.ssoTicket?.length) return null;
+        if(!data?.token?.length)
+        {
+            ClearRememberLogin();
+            return null;
+        }
+
         if(data.expiresAt && ((data.expiresAt * 1000) <= Date.now()))
         {
             ClearRememberLogin();
@@ -51,7 +56,7 @@ export const GetRememberLogin = (): RememberLoginData | null =>
 
 export const SetRememberLogin = (data: RememberLoginData): void =>
 {
-    if(!data?.token?.length && !data?.ssoTicket?.length) return;
+    if(!data?.token?.length) return;
 
     try
     {
@@ -81,7 +86,7 @@ export const StoreRememberLoginFromPayload = (payload: Record<string, unknown>, 
         ? parsedExpiresAt
         : Math.floor(Date.now() / 1000) + DEFAULT_REMEMBER_SECONDS;
 
-    if(!token.length && !ssoTicket?.length) return;
+    if(!token.length) return;
 
-    SetRememberLogin({ token: token || undefined, ssoTicket: ssoTicket || undefined, expiresAt, username });
+    SetRememberLogin({ token, ssoTicket: ssoTicket || undefined, expiresAt, username });
 };

@@ -11,6 +11,27 @@ interface CatalogSpacesWidgetViewProps extends AutoGridProps
 
 const SPACES_GROUP_NAMES = [ 'floors', 'walls', 'views' ];
 
+const getSpacesGroupIndex = (offer: IPurchasableOffer) =>
+{
+    const product = offer.product;
+
+    if(!product || ((product.productType !== ProductTypeEnum.WALL) && (product.productType !== ProductTypeEnum.FLOOR))) return -1;
+
+    const className = product.furnitureData?.className || '';
+
+    switch(className || offer.localizationId.split('_single_')[0])
+    {
+        case 'floor':
+            return 0;
+        case 'wallpaper':
+            return 1;
+        case 'landscape':
+            return 2;
+        default:
+            return -1;
+    }
+};
+
 export const CatalogSpacesWidgetView: FC<CatalogSpacesWidgetViewProps> = props =>
 {
     const { columnCount = 5, children = null, ...rest } = props;
@@ -45,28 +66,15 @@ export const CatalogSpacesWidgetView: FC<CatalogSpacesWidgetViewProps> = props =
         {
             if((offer.pricingModel !== Offer.PRICING_MODEL_SINGLE) && (offer.pricingModel !== Offer.PRICING_MODEL_MULTI)) continue;
 
-            const product = offer.product;
+            const groupIndex = getSpacesGroupIndex(offer);
 
-            if(!product || ((product.productType !== ProductTypeEnum.WALL) && (product.productType !== ProductTypeEnum.FLOOR)) || !product.furnitureData) continue;
+            if(groupIndex === -1) continue;
 
-            const className = product.furnitureData.className;
-
-            switch(className)
-            {
-                case 'floor':
-                    groupedOffers[0].push(offer);
-                    break;
-                case 'wallpaper':
-                    groupedOffers[1].push(offer);
-                    break;
-                case 'landscape':
-                    groupedOffers[2].push(offer);
-                    break;
-            }
+            groupedOffers[groupIndex].push(offer);
         }
 
         setGroupedOffers(groupedOffers);
-        setSelectedGroupIndex(0);
+        setSelectedGroupIndex(groupedOffers.findIndex(offers => offers.length));
         setSelectedOfferForGroup([ groupedOffers[0][0], groupedOffers[1][0], groupedOffers[2][0] ]);
     }, [ currentPage ]);
 
@@ -74,7 +82,7 @@ export const CatalogSpacesWidgetView: FC<CatalogSpacesWidgetViewProps> = props =
     {
         if((selectedGroupIndex === -1) || !selectedOfferForGroup) return;
 
-        setCurrentOffer(selectedOfferForGroup[selectedGroupIndex]);
+        setCurrentOffer(selectedOfferForGroup[selectedGroupIndex] || null);
 
     }, [ selectedGroupIndex, selectedOfferForGroup, setCurrentOffer ]);
 
@@ -82,11 +90,15 @@ export const CatalogSpacesWidgetView: FC<CatalogSpacesWidgetViewProps> = props =
     {
         if((selectedGroupIndex === -1) || !selectedOfferForGroup || !currentOffer) return;
 
+        const selectedOffer = selectedOfferForGroup[selectedGroupIndex];
+
+        if(!selectedOffer?.product) return;
+
         setPurchaseOptions(prevValue =>
         {
             const newValue = { ...prevValue };
 
-            newValue.extraData = selectedOfferForGroup[selectedGroupIndex].product.extraParam;
+            newValue.extraData = selectedOffer.product.extraParam;
             newValue.extraParamRequired = true;
 
             return newValue;

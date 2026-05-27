@@ -64,6 +64,21 @@ const asStringArray = (value: unknown): string[] =>
 
 const hasRememberLogin = (): boolean => !!GetRememberLogin();
 
+const removeSsoFromUrl = (): void =>
+{
+    try
+    {
+        const url = new URL(window.location.href);
+
+        if(url.searchParams.has('sso'))
+        {
+            url.searchParams.delete('sso');
+            window.history.replaceState({}, '', url.toString());
+        }
+    }
+    catch {}
+};
+
 export const App: FC<{}> = props =>
 {
     const [ isReady, setIsReady ] = useState(false);
@@ -115,22 +130,12 @@ export const App: FC<{}> = props =>
     const isReadyRef = useRef(false);
     const reconnectInProgressRef = useRef(false);
 
-    const clearStoredCredentials = useCallback(() =>
+    const clearStoredCredentials = useCallback((clearRemember = false) =>
     {
-        ClearRememberLogin();
+        if(clearRemember) ClearRememberLogin();
         try { delete (window as any).NitroConfig?.['sso.ticket']; } catch {}
         try { GetConfiguration().setValue('sso.ticket', ''); } catch {}
-        try
-        {
-            const url = new URL(window.location.href);
-
-            if(url.searchParams.has('sso'))
-            {
-                url.searchParams.delete('sso');
-                window.history.replaceState({}, '', url.toString());
-            }
-        }
-        catch {}
+        removeSsoFromUrl();
     }, []);
 
     const showSessionExpired = useCallback(() =>
@@ -171,6 +176,7 @@ export const App: FC<{}> = props =>
         if(!ssoTicket) return;
         window.NitroConfig['sso.ticket'] = ssoTicket;
         GetConfiguration().setValue('sso.ticket', ssoTicket);
+        removeSsoFromUrl();
     }, []);
 
     const handleAuthenticated = useCallback((ssoTicket: string) =>
@@ -479,9 +485,13 @@ export const App: FC<{}> = props =>
 
                 bumpProgress(10, taskLabel('loading.task.session', 'Verifying session...'));
 
-                if(!ssoTicket || ssoTicket === '')
+                let configInitError: unknown = null;
+                let configInitAttempted = false;
+                const ensureConfigInit = async () =>
                 {
-                    let configInitError: unknown = null;
+                    if(configInitAttempted) return;
+                    configInitAttempted = true;
+
                     try
                     {
                         await GetConfiguration().init();
@@ -490,6 +500,25 @@ export const App: FC<{}> = props =>
                     {
                         configInitError = e;
                     }
+                };
+
+                if(GetRememberLogin()?.token?.length)
+                {
+                    await ensureConfigInit();
+
+                    const rememberedSsoTicket = await tryRememberLogin();
+
+                    if(rememberedSsoTicket)
+                    {
+                        ssoTicket = rememberedSsoTicket;
+                        applySsoTicket(rememberedSsoTicket);
+                        setShowLogin(false);
+                    }
+                }
+
+                if(!ssoTicket || ssoTicket === '')
+                {
+                    await ensureConfigInit();
 
                     const rawLoginEnabled = GetConfiguration().getValue<unknown>('login.screen.enabled', false);
                     const loginScreenEnabled = rawLoginEnabled === true || rawLoginEnabled === 'true' || rawLoginEnabled === 1;

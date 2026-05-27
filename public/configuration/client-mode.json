@@ -1,8 +1,8 @@
 {
-  "distObfuscationEnabled": true,
+  "distObfuscationEnabled": false,
   "secureAssetsEnabled": false,
   "secureApiEnabled": false,
   "apiBaseUrl": "http://localhost:2096",
-  "plainConfigBaseUrl": "http://localhost:5173/configuration/",
-  "plainGamedataBaseUrl": "http://localhost:5173/nitro-assets/gamedata/"
+  "plainConfigBaseUrl": "http://localhost/habborp/cliente/configuration/",
+  "plainGamedataBaseUrl": "http://localhost/habborp/assets/nitro-assets/gamedata/"
 }

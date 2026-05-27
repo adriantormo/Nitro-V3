@@ -78,4 +78,21 @@ for(const [ source, file ] of publicLoaderAssets)
     }
 }
 
-writeFileSync(join(dist, 'index.html'), `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script></head><body><div id="root"></div><script src="configuration/bootstrap.js?v=${ buildVersion }"></script></body></html>`);
+writeFileSync(join(dist, 'index.html'), `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Nitro</title>
+    <link rel="icon" href="/habborp/assets/nitro-assets/images/extra/favicon.ico" />
+    <!-- Connection hints for the two domains the loader hits first.
+         dns-prefetch + preconnect halve the TLS round-trips on cold load. -->
+    <link rel="preconnect" href="https://challenges.cloudflare.com" crossorigin />
+    <script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script src="configuration/bootstrap.js?v=${ buildVersion }"></script>
+</body>
+</html>
+`);

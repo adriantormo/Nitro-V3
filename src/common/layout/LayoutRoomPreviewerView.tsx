@@ -75,6 +75,8 @@ export const LayoutRoomPreviewerView: FC<{
         });
 
         roomPreviewer.getRoomCanvas(width, height);
+        roomPreviewer.updatePreviewRoomView(true);
+        paintToDOM();
 
         resizeObserver.observe(elementRef.current);
 

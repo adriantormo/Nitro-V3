@@ -25,9 +25,10 @@
     "wired.action.mute.user.max.length":  100,
     "game.center.enabled":  false,
     "guides.enabled":  true,
+    "housekeeping.enabled":  true,
+    "housekeeping.mode":  "full",
     "toolbar.hide.quests":  true,
     "catalog.style.new":  true,
-    "show.google.ads":  false,
     "loginview":  {
                       "images":  {
                                      "background":  "${images.url}/reception/stretch_blue.png",
@@ -39,14 +40,16 @@
                                      "right.repeat":  "${images.url}/reception/US_top_right.png"
                                  },
                       "widgets":  {
-                                      "slot.1.widget":  "promoarticle",
+                                      "slot.1.widget":  "",
                                       "slot.1.conf":  {
 
                                                       },
                                       "slot.2.widget":  "widgetcontainer",
                                       "slot.2.conf":  {
                                                           "image":  "${image.library.url}web_promo_small/spromo_Canal_Bundle.png",
-                                                          "texts":  "2021NitroPromo",
+                                                          "texts":  "",
+                                                          "title":  "¿Qué hay de nuevo?",
+                                                          "description":  "Consulta las últimas novedades y promociones del hotel.",
                                                           "btnLink":  ""
                                                       },
                                       "slot.3.widget":  "",

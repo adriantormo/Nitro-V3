@@ -1,14 +1,26 @@
 import { GetAvatarRenderManager, GetSessionDataManager, Vector3d } from '@nitrots/nitro-renderer';
-import { FC, useEffect } from 'react';
-import { BuildPurchasableClothingFigure, FurniCategory, Offer, ProductTypeEnum } from '../../../../../api';
+import { FC, useEffect, useState } from 'react';
+import { BuildPurchasableClothingFigure, FurniCategory, IPurchasableOffer, Offer, ProductTypeEnum } from '../../../../../api';
 import { AutoGrid, Column, LayoutGridItem, LayoutRoomPreviewerView } from '../../../../../common';
 import { useCatalogData, useCatalogUiState } from '../../../../../hooks';
+
+const getSpacesPreviewData = (offer: IPurchasableOffer) =>
+{
+    const product = offer?.product;
+    const match = offer?.localizationId?.match(/^(floor|wallpaper|landscape)_single_(.+)$/);
+
+    return {
+        className: product?.furnitureData?.className || match?.[1] || '',
+        extraParam: product?.extraParam || match?.[2] || ''
+    };
+};
 
 export const CatalogViewProductWidgetView: FC<{}> = props =>
 {
     const { currentOffer = null, roomPreviewer = null } = useCatalogData();
     const { purchaseOptions = null } = useCatalogUiState();
     const { previewStuffData = null } = purchaseOptions;
+    const [ previewRevision, setPreviewRevision ] = useState(0);
 
     useEffect(() =>
     {
@@ -19,6 +31,12 @@ export const CatalogViewProductWidgetView: FC<{}> = props =>
         if(!product) return;
 
         roomPreviewer.reset(false);
+
+        const refreshPreview = () =>
+        {
+            roomPreviewer.updatePreviewRoomView(true);
+            setPreviewRevision(prevValue => (prevValue + 1));
+        };
 
         switch(product.productType)
         {
@@ -63,18 +81,48 @@ export const CatalogViewProductWidgetView: FC<{}> = props =>
                 {
                     roomPreviewer.addFurnitureIntoRoom(product.productClassId, new Vector3d(90), previewStuffData, product.extraParam);
                 }
+                refreshPreview();
                 return;
             }
             case ProductTypeEnum.WALL: {
+                const spacesPreviewData = getSpacesPreviewData(currentOffer);
+
+                if(spacesPreviewData.className)
+                {
+                    switch(spacesPreviewData.className)
+                    {
+                        case 'floor':
+                            roomPreviewer.updateObjectRoom(spacesPreviewData.extraParam);
+                            refreshPreview();
+                            return;
+                        case 'wallpaper':
+                            roomPreviewer.updateObjectRoom(null, spacesPreviewData.extraParam);
+                            refreshPreview();
+                            return;
+                        case 'landscape': {
+                            roomPreviewer.updateObjectRoom(null, null, spacesPreviewData.extraParam);
+
+                            const furniData = GetSessionDataManager().getWallItemDataByName('window_double_default');
+
+                            if(furniData) roomPreviewer.addWallItemIntoRoom(furniData.id, new Vector3d(90), furniData.customParams);
+
+                            refreshPreview();
+                            return;
+                        }
+                    }
+                }
+
                 if(!product.furnitureData) return;
 
                 switch(product.furnitureData.specialType)
                 {
                     case FurniCategory.FLOOR:
                         roomPreviewer.updateObjectRoom(product.extraParam);
+                        refreshPreview();
                         return;
                     case FurniCategory.WALL_PAPER:
                         roomPreviewer.updateObjectRoom(null, product.extraParam);
+                        refreshPreview();
                         return;
                     case FurniCategory.LANDSCAPE: {
                         roomPreviewer.updateObjectRoom(null, null, product.extraParam);
@@ -82,19 +130,23 @@ export const CatalogViewProductWidgetView: FC<{}> = props =>
                         const furniData = GetSessionDataManager().getWallItemDataByName('window_double_default');
 
                         if(furniData) roomPreviewer.addWallItemIntoRoom(furniData.id, new Vector3d(90), furniData.customParams);
+                        refreshPreview();
                         return;
                     }
                     default:
                         roomPreviewer.updateObjectRoom('default', 'default', 'default');
                         roomPreviewer.addWallItemIntoRoom(product.productClassId, new Vector3d(90), product.extraParam);
+                        refreshPreview();
                         return;
                 }
             }
             case ProductTypeEnum.ROBOT:
                 roomPreviewer.addAvatarIntoRoom(product.extraParam, 0);
+                refreshPreview();
                 return;
             case ProductTypeEnum.EFFECT:
                 roomPreviewer.addAvatarIntoRoom(GetSessionDataManager().figure, product.productClassId);
+                refreshPreview();
                 return;
         }
     }, [ currentOffer, previewStuffData, roomPreviewer ]);
@@ -115,5 +167,15 @@ export const CatalogViewProductWidgetView: FC<{}> = props =>
         );
     }
 
-    return <LayoutRoomPreviewerView height={ 140 } roomPreviewer={ roomPreviewer } />;
+    const product = currentOffer.product;
+    const previewKey = [
+        currentOffer.offerId,
+        currentOffer.localizationId,
+        product?.productType,
+        product?.productClassId,
+        product?.extraParam,
+        previewRevision
+    ].join(':');
+
+    return <LayoutRoomPreviewerView key={ previewKey } height={ 140 } roomPreviewer={ roomPreviewer } />;
 };

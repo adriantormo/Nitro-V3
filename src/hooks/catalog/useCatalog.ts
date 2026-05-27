@@ -12,6 +12,15 @@ import { useCatalogSkipPurchaseConfirmation } from './useCatalogSkipPurchaseConf
 const DUMMY_PAGE_ID_FOR_OFFER_SEARCH = -12345678;
 const DRAG_AND_DROP_ENABLED = true;
 
+const getSpacesProductExtraParam = (localizationId: string, productType: string, extraParam: string) =>
+{
+    if(extraParam?.length || (productType.toLowerCase() !== ProductTypeEnum.WALL)) return extraParam;
+
+    const match = localizationId?.match(/^(?:floor|wallpaper|landscape)_single_(.+)$/);
+
+    return match?.[1] || extraParam;
+};
+
 // Internal singleton store — held together by `useBetween` so every
 // public filter below sees the same listeners + state. Do NOT export
 // this directly; consumers must go through the filters or the
@@ -528,8 +537,9 @@ const useCatalogStore = () =>
             for(const product of offer.products)
             {
                 const furnitureData = GetFurnitureData(product.furniClassId, product.productType);
+                const extraParam = getSpacesProductExtraParam(offer.localizationId, product.productType, product.extraParam);
 
-                products.push(new Product(product.productType, product.furniClassId, product.extraParam, product.productCount, productData, furnitureData, product.uniqueLimitedItem, product.uniqueLimitedSeriesSize, product.uniqueLimitedItemsLeft));
+                products.push(new Product(product.productType, product.furniClassId, extraParam, product.productCount, productData, furnitureData, product.uniqueLimitedItem, product.uniqueLimitedSeriesSize, product.uniqueLimitedItemsLeft));
             }
 
             if(!products.length) continue;
@@ -601,8 +611,9 @@ const useCatalogStore = () =>
         for(const product of offerData.products)
         {
             const furnitureData = GetFurnitureData(product.furniClassId, product.productType);
+            const extraParam = getSpacesProductExtraParam(offerData.localizationId, product.productType, product.extraParam);
 
-            products.push(new Product(product.productType, product.furniClassId, product.extraParam, product.productCount, productData, furnitureData, product.uniqueLimitedItem, product.uniqueLimitedSeriesSize, product.uniqueLimitedItemsLeft));
+            products.push(new Product(product.productType, product.furniClassId, extraParam, product.productCount, productData, furnitureData, product.uniqueLimitedItem, product.uniqueLimitedSeriesSize, product.uniqueLimitedItemsLeft));
         }
 
         const offer = new Offer(offerData.offerId, offerData.localizationId, offerData.rent, offerData.priceCredits, offerData.priceActivityPoints, offerData.priceActivityPointsType, offerData.giftable, offerData.clubLevel, products, offerData.bundlePurchaseAllowed, offerData.itemIds, offerData.haveOffer);
