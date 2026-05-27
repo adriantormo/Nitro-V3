@@ -12,6 +12,7 @@ import { CampaignView } from './campaign/CampaignView';
 import { CatalogView } from './catalog/CatalogView';
 import { ChatHistoryView } from './chat-history/ChatHistoryView';
 import { CustomizeNickIconView } from './customize/CustomizeNickIconView';
+import { EmuStatsView } from './emustats/EmuStatsView';
 import { FloorplanEditorView } from './floorplan-editor/FloorplanEditorView';
 import { FurniEditorView } from './furni-editor/FurniEditorView';
 import { FriendsView } from './friends/FriendsView';
@@ -22,6 +23,7 @@ import { GuideToolView } from './guide-tool/GuideToolView';
 import { HcCenterView } from './hc-center/HcCenterView';
 import { HelpView } from './help/HelpView';
 import { HotelView } from './hotel-view/HotelView';
+import { HousekeepingView } from './housekeeping/HousekeepingView';
 import { InventoryView } from './inventory/InventoryView';
 import { ModToolsView } from './mod-tools/ModToolsView';
 import { NavigatorView } from './navigator/NavigatorView';
@@ -141,6 +143,7 @@ export const MainView: FC<{}> = props =>
             <TranslationBootstrap />
             <GoogleAdsView />
             <ModToolsView />
+            <HousekeepingView />
             <WiredCreatorToolsView />
             <RoomView />
             <ChatHistoryView />
@@ -149,6 +152,7 @@ export const MainView: FC<{}> = props =>
             <AvatarEditorView />
             <BadgeCreatorView />
             <BadgeLeaderboardView />
+            <EmuStatsView />
             <AvatarEffectsView />
             <AchievementsView />
             <NavigatorView />
