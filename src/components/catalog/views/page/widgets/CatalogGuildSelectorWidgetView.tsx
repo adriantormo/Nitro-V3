@@ -1,4 +1,4 @@
-import { StringDataType } from '@nitrots/nitro-renderer';
+import { CreateLinkEvent, StringDataType } from '@nitrots/nitro-renderer';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { LocalizeText } from '../../../../../api';
 import { Button, Flex } from '../../../../../common';
@@ -55,7 +55,7 @@ export const CatalogGuildSelectorWidgetView: FC<{}> = props =>
         return (
             <div className="bg-muted rounded p-1 text-black text-center">
                 { LocalizeText('catalog.guild_selector.members_only') }
-                <Button className="mt-1">
+                <Button className="mt-1" onClick={ () => CreateLinkEvent('navigator/search/groups') }>
                     { LocalizeText('catalog.guild_selector.find_groups') }
                 </Button>
             </div>

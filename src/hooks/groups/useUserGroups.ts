@@ -25,11 +25,21 @@ export const useUserGroups = (
         queryKey: [ 'nitro', 'user', 'groups' ],
         queryFn: async () =>
         {
-            const catalogGroups = await awaitNitroResponse<GuildMembershipsMessageEvent, HabboGroupEntryData[]>({
-                request: () => new CatalogGroupsComposer(),
-                parser: GuildMembershipsMessageEvent,
-                select: event => (event.getParser().groups || [])
-            });
+            let catalogGroups: HabboGroupEntryData[] = [];
+
+            try
+            {
+                catalogGroups = await awaitNitroResponse<GuildMembershipsMessageEvent, HabboGroupEntryData[]>({
+                    request: () => new CatalogGroupsComposer(),
+                    parser: GuildMembershipsMessageEvent,
+                    select: event => (event.getParser().groups || []),
+                    timeoutMs: 5000
+                });
+            }
+            catch
+            {
+                catalogGroups = [];
+            }
 
             if(catalogGroups.length) return catalogGroups;
 
