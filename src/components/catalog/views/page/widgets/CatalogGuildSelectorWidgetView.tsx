@@ -11,6 +11,14 @@ export const CatalogGuildSelectorWidgetView: FC<{}> = props =>
     const { setPurchaseOptions = null } = useCatalogUiState();
     const { data: groups = null } = useUserGroups();
 
+    useEffect(() =>
+    {
+        if(!groups || !groups.length) return;
+        if(selectedGroupIndex < groups.length) return;
+
+        setSelectedGroupIndex(0);
+    }, [ groups, selectedGroupIndex ]);
+
     const previewStuffData = useMemo(() =>
     {
         if(!groups || !groups.length) return null;

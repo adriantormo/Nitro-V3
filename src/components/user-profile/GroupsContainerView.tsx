@@ -68,9 +68,12 @@ export const GroupsContainerView: FC<GroupsContainerViewProps> = props =>
     return (
         <div className="nitro-extended-profile-groups">
             <div className="nitro-extended-profile-groups__sidebar">
-                <div className="nitro-extended-profile-groups__count">
-                    { LocalizeText('extendedprofile.groups.count', [ 'count' ], [ groups.length.toString() ]) }
-                </div>
+                <div
+                    className="nitro-extended-profile-groups__count"
+                    dangerouslySetInnerHTML={ {
+                        __html: LocalizeText('extendedprofile.groups.count', [ 'count' ], [ groups.length.toString() ])
+                    } }
+                />
                 <div className="nitro-extended-profile-groups__list">
                     { groups.map((group, index) =>
                     {

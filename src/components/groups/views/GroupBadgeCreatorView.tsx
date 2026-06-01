@@ -69,7 +69,7 @@ export const GroupBadgeCreatorView: FC<GroupBadgeCreatorViewProps> = props =>
         }
     };
 
-    if(!badgeParts || !badgeParts.length) return null;
+    if(!badgeParts || !badgeParts.length || !groupCustomize) return null;
 
     return (
         <>

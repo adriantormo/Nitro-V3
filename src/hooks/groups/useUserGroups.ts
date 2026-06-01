@@ -1,17 +1,16 @@
-import { CatalogGroupsComposer, GuildMembershipsMessageEvent, HabboGroupEntryData } from '@nitrots/nitro-renderer';
-import { UseQueryResult } from '@tanstack/react-query';
-import { useNitroQuery } from '../../api/nitro-query';
+import { CatalogGroupsComposer, GetSessionDataManager, GuildMembershipsMessageEvent, HabboGroupEntryData, UserProfileComposer, UserProfileEvent } from '@nitrots/nitro-renderer';
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { awaitNitroResponse } from '../../api/nitro-query';
 
 /**
  * The list of guilds the current Habbo belongs to, as returned by
  * the `CatalogGroupsComposer` → `GuildMembershipsMessageEvent`
  * request/response pair.
  *
- * Cached at session level: the membership list is stable for the
- * session unless the user joins/leaves a guild (in which case the
- * relevant flow should invalidate the `['nitro', 'user', 'groups']`
- * query key, which today nobody does — re-mounting the consumer
- * refetches via React Query's default behavior).
+ * Group membership can change during the same client session when the
+ * user creates, joins, leaves, or is accepted into a guild. Keep this
+ * query fresh on mount so catalog group furniture does not get stuck
+ * with an earlier empty membership list.
  *
  * Replaces three duplicate request+listener pairs that previously
  * each issued their own CatalogGroupsComposer:
@@ -22,11 +21,40 @@ import { useNitroQuery } from '../../api/nitro-query';
 export const useUserGroups = (
     options: { enabled?: boolean } = {}
 ): UseQueryResult<HabboGroupEntryData[]> =>
-    useNitroQuery<GuildMembershipsMessageEvent, HabboGroupEntryData[]>({
-        key: [ 'nitro', 'user', 'groups' ],
-        request: () => new CatalogGroupsComposer(),
-        parser: GuildMembershipsMessageEvent,
-        select: event => (event.getParser().groups || []),
+    useQuery<HabboGroupEntryData[], Error, HabboGroupEntryData[]>({
+        queryKey: [ 'nitro', 'user', 'groups' ],
+        queryFn: async () =>
+        {
+            const catalogGroups = await awaitNitroResponse<GuildMembershipsMessageEvent, HabboGroupEntryData[]>({
+                request: () => new CatalogGroupsComposer(),
+                parser: GuildMembershipsMessageEvent,
+                select: event => (event.getParser().groups || [])
+            });
+
+            if(catalogGroups.length) return catalogGroups;
+
+            const userId = GetSessionDataManager().userId;
+
+            if(!userId) return catalogGroups;
+
+            try
+            {
+                const profileGroups = await awaitNitroResponse<UserProfileEvent, HabboGroupEntryData[]>({
+                    request: () => new UserProfileComposer(userId, false),
+                    parser: UserProfileEvent,
+                    accept: event => (event.getParser().id === userId),
+                    select: event => (event.getParser().groups || []),
+                    timeoutMs: 5000
+                });
+
+                return profileGroups.length ? profileGroups : catalogGroups;
+            }
+            catch
+            {
+                return catalogGroups;
+            }
+        },
         enabled: options.enabled,
-        staleTime: Infinity
+        staleTime: 0,
+        refetchOnMount: 'always'
     });

@@ -46,13 +46,13 @@
 
 .nitro-extended-profile__identity {
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-columns: 68px minmax(0, 1fr);
   gap: 8px;
 }
 
 .nitro-extended-profile__avatar-shell {
-  width: 56px;
-  height: 113px;
+  width: 68px;
+  height: 135px;
   position: relative;
   overflow: hidden;
   background-size: cover;
@@ -65,13 +65,23 @@
   inset: 0;
 }
 
+.nitro-extended-profile__avatar-stand {
+  z-index: 1;
+}
+
+.nitro-extended-profile__avatar-overlay {
+  z-index: 3;
+}
+
 .nitro-extended-profile__avatar-image {
   position: absolute !important;
   left: 50% !important;
-  bottom: -4px;
+  bottom: 0;
+  z-index: 2;
   transform: translateX(-50%);
   width: auto !important;
   height: auto !important;
+  background-position: center bottom;
 }
 
 .nitro-extended-profile__identity-copy {
@@ -333,7 +343,7 @@
 }
 
 .nitro-extended-profile-window__body--groups {
-  min-height: 249px;
+  min-height: 238px;
 }
 
 .nitro-extended-profile-window__panel {
@@ -344,9 +354,9 @@
 
 .nitro-extended-profile-groups {
   display: grid;
-  grid-template-columns: 82px minmax(0, 1fr);
+  grid-template-columns: 78px minmax(0, 1fr);
   gap: 7px;
-  min-height: 236px;
+  min-height: 226px;
   height: 100%;
 }
 
@@ -378,34 +388,37 @@
 
 .nitro-extended-profile-groups__details {
   min-width: 0;
-  min-height: 236px;
+  min-height: 226px;
   border: 1px solid #9e9e9e;
-  border-radius: 14px;
+  border-radius: 10px;
   background: #bdbbbb;
-  padding: 11px;
+  padding: 7px;
+  overflow: hidden;
 }
 
 .nitro-extended-profile-group-info {
   display: grid;
-  grid-template-columns: 110px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 98px minmax(0, 1fr);
+  gap: 10px;
   min-height: 100%;
   border: 1px solid #9f9f9f;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #efede4;
-  padding: 12px 14px;
+  padding: 8px 11px;
+  overflow: hidden;
 }
 
 .nitro-extended-profile-group-info__badge-column {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
+  min-width: 0;
 }
 
 .nitro-extended-profile-group-info__badge-wrap {
-  width: 96px;
-  height: 96px;
+  width: 76px;
+  height: 76px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -439,8 +452,9 @@
 }
 
 .nitro-extended-profile-group-info__description {
-  margin-top: 10px;
-  min-height: 52px;
+  margin-top: 7px;
+  min-height: 34px;
+  max-height: 45px;
   color: #222;
   line-height: 14px;
 }
@@ -448,19 +462,19 @@
 .nitro-extended-profile-group-info__links {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 8px;
+  gap: 3px;
+  margin-top: 6px;
 }
 
 .nitro-extended-profile-group-info__button {
   align-self: center;
   min-width: 162px;
-  min-height: 24px;
-  margin-top: auto;
+  min-height: 22px;
+  margin-top: 6px;
 }
 
 .nitro-extended-profile-group-info .group-badge .badge-image {
-  transform: scale(2.1);
+  transform: scale(1.45);
   transform-origin: center;
 }
 

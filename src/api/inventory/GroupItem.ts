@@ -1,4 +1,5 @@
 import { IObjectData, IRoomEngine } from '@nitrots/nitro-renderer';
+import { GetConfigurationValue } from '../nitro';
 import { LocalizeText } from '../utils';
 import { FurniCategory } from './FurniCategory';
 import { FurnitureItem } from './FurnitureItem';
@@ -349,17 +350,45 @@ export class GroupItem
         this._description = '';
     }
 
+    private getSpacesIconUrl(): string
+    {
+        const extraParam = this._stuffData?.getLegacyString();
+
+        if(!extraParam || !extraParam.length) return null;
+
+        let iconName = '';
+
+        switch(this._category)
+        {
+            case FurniCategory.FLOOR:
+                iconName = [ 'th', 'floor', extraParam ].join('_');
+                break;
+            case FurniCategory.WALL_PAPER:
+                iconName = [ 'th', 'wall', extraParam ].join('_');
+                break;
+            case FurniCategory.LANDSCAPE:
+                iconName = [ 'th', 'landscape', extraParam.replace('.', '_'), '001' ].join('_');
+                break;
+        }
+
+        if(!iconName.length) return null;
+
+        const assetUrl = GetConfigurationValue<string>('catalog.asset.url');
+
+        return `${ assetUrl }/${ iconName }.png`;
+    }
+
     private setIcon(): void
     {
         if(this._iconUrl) return;
 
-        let url = null;
+        let url = this.getSpacesIconUrl();
 
-        if(this.isWallItem)
+        if(!url && this.isWallItem)
         {
             url = this._roomEngine.getFurnitureWallIconUrl(this._type, this._stuffData.getLegacyString());
         }
-        else
+        else if(!url)
         {
             url = this._roomEngine.getFurnitureFloorIconUrl(this._type);
         }

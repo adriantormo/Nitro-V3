@@ -56,6 +56,8 @@ export const UserProfileView: FC<{}> = () =>
     {
         const parser = event.getParser();
 
+        if(!parser.openProfileWindow) return;
+
         let isSameProfile = false;
 
         setUserProfile(prevValue =>

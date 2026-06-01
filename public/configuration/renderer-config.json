@@ -9,7 +9,7 @@
     "hof.furni.url":  "/habborp/assets/nitro-assets/furniture",
     "images.url":  "/habborp/assets/nitro-assets/images",
     "gamedata.url":  "/habborp/assets/nitro-assets/gamedata",
-    "sounds.url":  "/habborp/assets/nitro-assets/furniture/sounds/%sample%.mp3",
+    "sounds.url":  "/habborp/assets/nitro-assets/sounds/%sample%.mp3",
     "external.texts.url":  [
                                "${gamedata.url}/ExternalTexts.json?t=%timestamp%",
                                "${gamedata.url}/UITexts.json?t=%timestamp%",
@@ -30,7 +30,7 @@
     "furni.asset.icon.url":  "${hof.furni.url}/icons/%libname%%param%_icon.png",
     "pet.asset.url":  "${asset.url}/pet/%libname%.nitro",
     "generic.asset.url":  "${asset.url}/generic/%libname%.nitro",
-    "badge.asset.url":  "${image.library.url}album1584/%badgename%.gif",
+    "badge.asset.url":  "/habborp/assets/badges_all_26-05-26/%badgename%.gif",
     "furni.rotation.bounce.steps":  20,
     "furni.rotation.bounce.height":  0.0625,
     "enable.avatar.arrow":  false,
